@@ -57,7 +57,7 @@ pipeline {
                    
                     notifyEvents message: 'PIPELINE -STAGE 6 - <b> DONE</b>', token: 'gyhkv-ikpe85jbm5b3y9wlbqk5xdmo58'
 		            echo 'EMAIL / TELEGRAM / SMS success!!!'
-                 }
-        }
+                 }
+        }
 }
 }
