@@ -9,7 +9,7 @@ pipeline {
     }
     stage('2 - SONARQUBE SCAN') {
       steps {
-            sh 'sonar-scanner -X -Dsonar.projectKey=SONARQUBE-JENKINS -Dsonar.sources=. -Dsonar.host.url=http://192.168.56.185:9000 -Dsonar.login=admin -Dsonar.password=root'
+            sh 'sonar-scanner -X -Dsonar.projectKey=SONARQUBE-JENKINS -Dsonar.sources=. -Dsonar.host.url=http://192.168.144.146:9000 -Dsonar.login=admin -Dsonar.password=root'
             notifyEvents message: 'PIPELINE -STAGE 2 - <b> DONE</b>', token: 'gyhkv-ikpe85jbm5b3y9wlbqk5xdmo58'
           
       }
@@ -34,7 +34,7 @@ pipeline {
                     dir('/home/alice/.jenkins/workspace/PIPELINE-SONARQUBE/Ditiss_Project') {
                     sh 'docker stop zap'
                     sh 'docker rm zap'
-                    sh 'docker run --name zap -v $(pwd):/zap/wrk/:rw -t owasp/zap2docker-stable zap-full-scan.py -I -t http://192.168.56.185:9990/login.php -r scan_report.html'
+                    sh 'docker run --name zap -v $(pwd):/zap/wrk/:rw -t owasp/zap2docker-stable zap-full-scan.py -I -t http://192.168.144.146:9990/login.php -r scan_report.html'
 		            echo 'OWASP ZAP scan success!!!'
 		            notifyEvents message: 'PIPELINE -STAGE 4 - <b> DONE</b>', token: 'gyhkv-ikpe85jbm5b3y9wlbqk5xdmo58'
                  }
