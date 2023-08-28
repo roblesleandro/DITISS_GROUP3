@@ -1,0 +1,63 @@
+pipeline {
+  agent any
+  stages {
+    stage('1 - GIT CLONE') {
+      steps {
+        sh 'git clone https://github.com/AmitKumar-8986/Ditiss_Project.git'
+        notifyEvents message: 'PIPELINE -STAGE 1 - <b> DONE</b>', token: 'gyhkv-ikpe85jbm5b3y9wlbqk5xdmo58'
+      }
+    }
+    stage('2 - SONARQUBE SCAN') {
+      steps {
+            sh 'sonar-scanner -X -Dsonar.projectKey=SONARQUBE-JENKINS -Dsonar.sources=. -Dsonar.host.url=http://192.168.56.185:9000 -Dsonar.login=admin -Dsonar.password=root'
+            notifyEvents message: 'PIPELINE -STAGE 2 - <b> DONE</b>', token: 'gyhkv-ikpe85jbm5b3y9wlbqk5xdmo58'
+          
+      }
+    }
+    
+    stage('3 - DOCKER IMAGE BUILDD') {
+            steps {
+                    dir('/home/alice/.jenkins/workspace/PIPELINE-SONARQUBE/Ditiss_Project') {
+                    sh 'docker stop webapp'
+                    sh 'docker rm webapp'
+                    sh 'docker image build -t php:v1.$BUILD_ID .'
+                    sh 'docker image tag php:v1.$BUILD_ID amitsinha8986/php:latest'
+                    sh 'docker run -d --name webapp -p 9990:80 amitsinha8986/php:latest'
+                    echo 'Images build success!!!!'
+                    notifyEvents message: 'PIPELINE -STAGE 3 - <b> DONE</b>', token: 'gyhkv-ikpe85jbm5b3y9wlbqk5xdmo58'
+                }  
+            }
+        }
+
+    stage('4 - OWASP ZAP') {
+            steps {
+                    dir('/home/alice/.jenkins/workspace/PIPELINE-SONARQUBE/Ditiss_Project') {
+                    sh 'docker stop zap'
+                    sh 'docker rm zap'
+                    sh 'docker run --name zap -v $(pwd):/zap/wrk/:rw -t owasp/zap2docker-stable zap-full-scan.py -I -t http://192.168.56.185:9990/login.php -r scan_report.html'
+		            echo 'OWASP ZAP scan success!!!'
+		            notifyEvents message: 'PIPELINE -STAGE 4 - <b> DONE</b>', token: 'gyhkv-ikpe85jbm5b3y9wlbqk5xdmo58'
+                 }
+            }
+        }
+    stage('5 - DOCKER IMAGE PUSH') {
+            steps {
+                 dir('/home/alice/.jenkins/workspace/PIPELINE-SONARQUBE/Ditiss_Project') {
+                    withCredentials([string(credentialsId: 'DockerHub-Token', variable: 'hubdockerpasswd')]) {
+                        sh 'docker login -u amitsinha8986 -p ${hubdockerpasswd}'
+                        sh 'docker image push amitsinha8986/php:latest'
+                        echo 'Ducker image pushed on Docker Hub Successfully !!!!!!!'
+                        notifyEvents message: 'PIPELINE -STAGE 5 - <b> DONE</b>', token: 'gyhkv-ikpe85jbm5b3y9wlbqk5xdmo58'
+                    }
+                 }
+            }
+    }
+    stage('6 - EMAIL/TELEGRAM/SMS') {
+            steps {
+                   
+                    notifyEvents message: 'PIPELINE -STAGE 6 - <b> DONE</b>', token: 'gyhkv-ikpe85jbm5b3y9wlbqk5xdmo58'
+		            echo 'EMAIL / TELEGRAM / SMS success!!!'
+                 }
+        }
+}
+}
